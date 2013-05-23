@@ -1,0 +1,168 @@
+﻿<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns:fb="http://ogp.me/ns/fb#">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+		<title>Profile page of SNA</title>
+		<link rel="stylesheet" type="text/css" href="decoration.css"/>
+	</head>
+	<body>
+		<div id="fb-root"></div>
+		<script type="text/javascript" src="http://connect.facebook.net/en_US/all.js"></script>
+		<script>
+			window.fbAsyncInit = function() {
+				FB.init({
+					appId: "284540881582310", // Your facebook app id
+					status: true,
+					cookie: true,
+					xfbml: true
+				});
+			}
+			
+			(function(d, s, id) {
+ 			var js, fjs = d.getElementsByTagName(s)[0];
+ 			if (d.getElementById(id)) return;
+ 			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=284540881582310";
+ 			fjs.parentNode.insertBefore(js, fjs);
+			}(document, 'script', 'facebook-jssdk'));
+		</script>
+		<script>
+			
+			function loginOnclick()
+			{
+				FB.login( successCall, { scope: 'user_photos,user_about_me,user_birthday,user_education_history,user_hometown,user_location,publish_stream,offline_access,user_videos,user_religion_politics'});
+			}
+
+			function successCall(response){
+				
+				if(response.authResponse){
+					var loginButton = document.getElementById("loginButton");
+					loginButton.innerHTML = "Click";
+					
+					tweakColumn();
+					createProfile(response);
+				}
+				else{
+					
+				}
+			}
+			
+			function tweakColumn(){
+				var tBody = document.getElementById("mainArea");
+				tBody.removeChild(document.getElementById("loginButton"));
+				
+				document.getElementsByTagName("h1")[0].style.background = "#3b5998";
+				document.getElementsByTagName("h1")[0].style.color = "#FFFFFF";
+				document.getElementsByTagName("h1")[0].style.fontSize = "22px";
+				document.getElementsByTagName("h1")[0].style.marginTop = "0px";
+			}
+			
+			function createProfile(response){
+			
+				var tBody = document.getElementById("mainArea");
+				
+				FB.api('/me/friends', function(responseFriends) {
+					
+					var friendsColumn = document.createElement("div");
+					friendsColumn.setAttribute("id", "friendsColumn");
+					tBody.appendChild(friendsColumn);
+					
+					var friendsTitle = document.createElement("h2");
+					friendsTitle.innerHTML = "Friends List";
+					friendsColumn.appendChild(friendsTitle);
+					
+					for(var i=0; i<10; i++){
+						var friendsLink = document.createElement("a");
+						var userFriends = document.createElement("div");
+							
+						var rand = Math.floor(Math.random() * responseFriends['data'].length);
+							
+						var fId = responseFriends['data'][ rand]['id'];
+						var fName = responseFriends['data'][ rand]['name'];
+						userFriends.innerHTML = '<img src="https://graph.facebook.com/' + fId + '/picture" />' + '<span>' + fName + '</span>';
+						friendsLink.setAttribute("href", "https://www.facebook.com/" + fId);
+						friendsLink.setAttribute("target", "_blank");
+						friendsLink.appendChild(userFriends);
+							
+						friendsColumn.appendChild(friendsLink);
+					}	
+					
+					createProfileCol(response);
+				});
+			}
+			
+			function createProfileCol(responseMe){
+				
+				var tBody = document.getElementById("mainArea");
+				var rightArea = document.createElement("div");
+				rightArea.setAttribute("id", "rightArea");
+				tBody.appendChild(rightArea);
+				
+				FB.api('/me', function(responseMe) {
+						
+					var userInfo = document.createElement('div');
+					userInfo.setAttribute("id", "profile");
+					userInfo.innerHTML = '<img src="https://graph.facebook.com/' + responseMe.id + '/picture"/><br/>' + responseMe.name;
+					userInfo.innerHTML = userInfo.innerHTML + '<br>' + "性別: " + responseMe.gender;
+					userInfo.innerHTML = userInfo.innerHTML + '<br>' + "生日: " + responseMe.birthday;
+					userInfo.innerHTML = userInfo.innerHTML + '<br>' + "住處: " + responseMe.location.name;
+					rightArea.appendChild(userInfo);
+					addTextArea();
+				});
+			}
+			
+			function addTextArea(){
+			
+				var rightArea = document.getElementById("rightArea");
+			
+				var messageDiv = document.createElement("div");
+				messageDiv.setAttribute("id", "messageDiv");
+				rightArea.appendChild(messageDiv);
+				
+				var messageTextArea = document.createElement("textarea");
+				messageTextArea.setAttribute("id", "messageTextArea");
+				messageDiv.appendChild(messageTextArea);
+				
+				var publishButton = document.createElement("div");
+				publishButton.setAttribute("id", "publishButton");
+				publishButton.setAttribute("onclick", "publishMessage();")
+				publishButton.innerHTML = "<span>Publish to your Timeline</span>";
+				messageDiv.appendChild(publishButton);
+				
+				var photoArea = document.createElement("div");
+				var tBody = document.getElementById("mainArea");
+				photoArea.setAttribute("id", "photoArea");
+				tBody.appendChild(photoArea);
+				
+				FB.api('/me/photos', function(resP) {
+					for(var i=0; i<10; i++){
+						var userP = document.createElement("img");
+						userP.setAttribute("src", resP['data'][i]['images'][0]['source']);
+							
+						var AP = document.getElementById("photoArea");
+						AP.appendChild(userP);
+					}
+				});
+			}
+			
+			function publishMessage(){
+				var textMessage = document.getElementById("messageTextArea").value;
+
+				FB.api('/me/feed', 'post', { message: textMessage }, function(response){
+					if ( !response || response.error ) {
+						alert("Error!");
+					} else {
+						textMessage = "";
+						alert("the message you typed has been send");
+					}
+				});
+			}
+		</script>
+		<div id="mainArea">
+			<fb:like href="https://www.google.com" send="false" width="450" show_faces="true" font="segoe ui"></fb:like>
+			<h1>Adapted Facebook Profile Page For You</h1>
+			<div id="loginButton"><span class="center">Login with your Facebook</span></div>
+		</div>
+	</body>
+</html>
